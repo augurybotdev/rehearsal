@@ -1,12 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AuguryBot Staging</title>
-</head>
+<html>
 <body>
-  <h1>Welcome to AuguryBot Staging</h1>
-  <p>This is a test page for autonomous publishing.</p>
+<svg id="canvas" width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3"/>
+            <feOffset dx="0" dy="0" result="offsetblur"/>
+            <feFlood flood-color="#000000"/>
+            <feComposite in2="offsetblur" operator="in"/>
+            <feMerge>
+                <feMergeNode/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+</svg>
+
+<script>
+class CollaborativeCanvas {
+    constructor(svgElement) {
+        this.svg = svgElement;
+        this.currentTool = 'draw';
+        this.setupEventListeners();
+    }
+
+    setupEventListeners() {
+        this.svg.addEventListener('mousedown', this.startDrawing.bind(this));
+        this.svg.addEventListener('mousemove', this.draw.bind(this));
+        this.svg.addEventListener('mouseup', this.stopDrawing.bind(this));
+    }
+
+    startDrawing(event) {
+        if (this.currentTool === 'draw') {
+            this.currentPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            this.currentPath.setAttribute('fill', 'none');
+            this.currentPath.setAttribute('stroke', 'black');
+            this.currentPath.setAttribute('stroke-width', '2');
+            this.currentPath.setAttribute('filter', 'url(#shadow)');
+            
+            const point = this.getCoordinates(event);
+            this.currentPath.setAttribute('d', `M${point.x},${point.y}`);
+            this.svg.appendChild(this.currentPath);
+        }
+    }
+
+    draw(event) {
+        if (this.currentPath) {
+            const point = this.getCoordinates(event);
+            const currentD = this.currentPath.getAttribute('d');
+            this.currentPath.setAttribute('d', `${currentD} L${point.x},${point.y}`);
+        }
+    }
+
+    stopDrawing() {
+        this.currentPath = null;
+    }
+
+    getCoordinates(event) {
+        const svgPoint = this.svg.createSVGPoint();
+        svgPoint.x = event.clientX;
+        svgPoint.y = event.clientY;
+        return svgPoint.matrixTransform(this.svg.getScreenCTM().inverse());
+    }
+
+    addShape(type) {
+        // Placeholder for adding geometric shapes
+    }
+}
+
+const canvas = new CollaborativeCanvas(document.getElementById('canvas'));
+</script>
 </body>
 </html>
